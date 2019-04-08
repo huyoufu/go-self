@@ -9,7 +9,7 @@ func TestNewServer(t *testing.T) {
 	server := NewServer()
 	server.EnableCors()
 	server.EnableSession()
-	router.Any("/x/y/z/:id/:xx", func(ctx router.Context) {
+	router.Any("/x", func(ctx router.Context) {
 		ctx.WriteString("你好")
 	})
 	server.Start()
