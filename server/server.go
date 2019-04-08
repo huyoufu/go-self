@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/huyoufu/go-self/logger"
 	"github.com/huyoufu/go-self/router"
 	"github.com/huyoufu/go-self/session"
 	"net/http"
@@ -37,6 +38,7 @@ func (s *Server) Port(port int) {
 	s.port = port
 }
 func (s *Server) Start() {
+	logger.InfoF("server will start on port: %d", s.port)
 	if s.session {
 		s.sessionManager.StartGC()
 	}
