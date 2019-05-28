@@ -74,6 +74,9 @@ func (m *Manager) GetSession(sessionId string) (s Session) {
 func Access(session Session) {
 	session.access()
 }
+func (m *Manager) Remove(session Session) {
+	m.sessions.Delete(session.Id())
+}
 func (m *Manager) StartGC() {
 	m.gc()
 }

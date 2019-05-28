@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"github.com/huyoufu/go-self/bind"
 	_ "github.com/huyoufu/go-self/json"
 	"github.com/huyoufu/go-self/session"
@@ -26,6 +27,7 @@ type HttpContext struct {
 	resp    http.ResponseWriter
 	params  PathParam
 	Session session.Session
+	context context.Context
 }
 
 func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, Session session.Session) *HttpContext {
@@ -33,6 +35,7 @@ func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathPara
 		req,
 		resp,
 		params,
+		nil,
 		nil,
 	}
 }
@@ -51,7 +54,7 @@ func (hctx *HttpContext) SessionSet(key string, value interface{}) {
 }
 
 func (hctx *HttpContext) SessionInvalidate() {
-	panic("implement me")
+	hctx.Session.Invalidate()
 }
 
 func (hctx *HttpContext) PathParamValue(name string) string {
