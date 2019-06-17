@@ -19,3 +19,7 @@ func TestPipeline_First(t *testing.T) {
 	pipeline := Pipeline{}
 	pipeline.FirstPF(X{}.Haha)
 }
+func TestPipeline_Two(t *testing.T) {
+
+	fmt.Println(1)
+}
