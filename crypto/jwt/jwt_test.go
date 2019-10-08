@@ -14,8 +14,8 @@ func TestJwt(t *testing.T) {
 
 	start := time.Now().UnixNano()
 	for i := 0; i < 10000; i++ {
-		sign := Sign(map[string]interface{}{"name": "xiaohu"})
-		fmt.Println(sign)
+		Sign(map[string]interface{}{"name": "xiaohu"})
+		//fmt.Println(sign)
 	}
 	end := time.Now().UnixNano()
 

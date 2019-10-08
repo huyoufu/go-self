@@ -2,7 +2,7 @@ package router
 
 import (
 	"context"
-	"github.com/huyoufu/go-self/bind"
+
 	_ "github.com/huyoufu/go-self/json"
 	"github.com/huyoufu/go-self/session"
 	"github.com/json-iterator/go"
@@ -66,7 +66,7 @@ func (hctx *HttpContext) Req() *http.Request {
 func (hctx *HttpContext) Bind(bean interface{}) error {
 	hctx.req.ParseForm()
 	//e := bind.Bind(bean, hctx.req.PostForm)
-	e := bind.Bind(bean, hctx.req.Form)
+	e := Bind(bean, hctx.req.Form)
 	return e
 }
 func copyValues(dst, src url.Values) {
