@@ -10,7 +10,7 @@ func TestNewServer(t *testing.T) {
 	server.EnableCors()
 	server.EnableSession()
 	router.Any("/x", func(ctx router.Context) {
-		ctx.WriteString("你好")
+		ctx.WriteString("hello world!!!")
 	})
 	server.Start()
 }
