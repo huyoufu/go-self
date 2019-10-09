@@ -79,6 +79,8 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		httpContext.Session = initSession(s.sessionManager, req, resp)
 	}
 
+	//fmt.Println(runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
+
 	h.Service(httpContext)
 
 }

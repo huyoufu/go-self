@@ -4,9 +4,8 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strings"
-
 	"strconv"
+	"strings"
 )
 
 const (
@@ -67,7 +66,7 @@ func FetalF(partten string, msg ...interface{}) {
 	}
 	os.Exit(1)
 }
-func generateFuncInfo() string {
+func GenerateFuncInfo() string {
 	//pc, file, line, ok := runtime.Caller(1)
 	//.Print(pc,file,line,ok)
 	//创建一个存放堆栈信息的 切片

@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-
 	_ "github.com/huyoufu/go-self/json"
 	"github.com/huyoufu/go-self/session"
 	"github.com/json-iterator/go"
