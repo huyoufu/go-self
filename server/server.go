@@ -1,28 +1,59 @@
 package server
 
 import (
+	"fmt"
 	"github.com/huyoufu/go-self/logger"
 	"github.com/huyoufu/go-self/router"
 	"github.com/huyoufu/go-self/session"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Server struct {
 	port           int
 	serverName     string
 	cors           bool
-	corsWhiteList  []string
 	sessionManager *session.Manager
 	session        bool
+	pl             *router.Pipeline
 }
 
+func DefaultServer() *Server {
+	server := NewServer()
+	//添加日志拦截
+	server.AppendValveF(func(ctx router.Context) bool {
+		fmt.Println(time.Now().Format("009/01/23 01:23:23") + "|" + ctx.ClientIP() + "|" + ctx.Req().RequestURI)
+		return true
+	})
+	return server
+}
+func (s *Server) FrontValve(valves ...router.Valve) {
+	for _, v := range valves {
+		s.pl.First(v)
+	}
+}
+func (s *Server) AppendValve(valves ...router.Valve) {
+	for _, v := range valves {
+		s.pl.Last(v)
+	}
+}
+func (s *Server) FrontValveF(vfs ...func(ctx router.Context) bool) {
+	for _, v := range vfs {
+		s.pl.FirstPF(v)
+	}
+}
+func (s *Server) AppendValveF(vfs ...func(ctx router.Context) bool) {
+	for _, v := range vfs {
+		s.pl.LastPF(v)
+	}
+}
 func NewServer() *Server {
-
 	return &Server{
 		port:       8847,
-		serverName: "jk",
+		serverName: "jk1123.com",
 		cors:       false,
+		pl:         router.New(),
 	}
 }
 
@@ -49,10 +80,7 @@ func (s *Server) Start() {
 	}
 
 }
-func (s *Server) AddWhiteList(domain string) {
 
-	s.corsWhiteList = append(s.corsWhiteList, domain)
-}
 func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("server", s.serverName)
 	if s.cors {
@@ -79,17 +107,12 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		httpContext.Session = initSession(s.sessionManager, req, resp)
 	}
 
-	//fmt.Println(runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name())
-
-	h.Service(httpContext)
-
-}
-func isAjax(request *http.Request) bool {
-	xrw := request.Header.Get("X-Requested-With")
-	if xrw != "" && "XMLHttpRequest" == xrw {
-		return true
+	s.pl.Invoke(httpContext)
+	if httpContext.IsEnd() {
+		httpContext.WriteString("非法请求")
+		return
 	}
-	return false
+	h.Service(httpContext)
 
 }
 

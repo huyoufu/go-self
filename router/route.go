@@ -7,31 +7,56 @@ import (
 type Routers map[string]router
 
 var Dispatcher = Routers{
-	"GET":     router{"get请求", NewRoot()},
-	"POST":    router{"post请求", NewRoot()},
-	"PUT":     router{"put请求", NewRoot()},
-	"DELETE":  router{"delete请求", NewRoot()},
-	"ANY":     router{"any请求", NewRoot()},
-	"OPTIONS": router{"options请求", NewRoot()},
+	"GET":     router{"get请求", NewRoot(), nil},
+	"POST":    router{"post请求", NewRoot(), nil},
+	"PUT":     router{"put请求", NewRoot(), nil},
+	"DELETE":  router{"delete请求", NewRoot(), nil},
+	"ANY":     router{"any请求", NewRoot(), nil},
+	"OPTIONS": router{"options请求", NewRoot(), nil},
 }
 
 type RouterGroup struct {
 	name, gpath string
+	pl          *Pipeline
 }
 type router struct {
 	name string
 	Tree *Node
+	pl   *Pipeline
 }
 
 func NewGroup(name, groupPath string) *RouterGroup {
 	return &RouterGroup{
 		name,
 		groupPath,
+		New(),
+	}
+}
+
+func (rg *RouterGroup) FrontValve(valves ...Valve) {
+	for _, v := range valves {
+		rg.pl.First(v)
+	}
+}
+func (rg *RouterGroup) AppendValve(valves ...Valve) {
+	for _, v := range valves {
+		rg.pl.Last(v)
+	}
+}
+func (rg *RouterGroup) FrontValveF(vfs ...func(ctx Context) bool) {
+	for _, v := range vfs {
+		rg.pl.FirstPF(v)
+	}
+}
+func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context) bool) {
+	for _, v := range vfs {
+		rg.pl.LastPF(v)
 	}
 }
 
 func (rg *RouterGroup) Get(path string, h func(ctx Context)) {
 	AddRouterHandFunc("GET", rg.gpath+path, h)
+
 }
 func (rg *RouterGroup) Post(path string, h func(ctx Context)) {
 	AddRouterHandFunc("POST", rg.gpath+path, h)
@@ -64,7 +89,11 @@ func Any(pattern string, h func(ctx Context)) {
 func Options(pattern string, h func(ctx Context)) {
 	AddRouterHandFunc("OPTIONS", pattern, h)
 }
-
+func AddRouterHandFuncWithPipeline(method, pattern string, h func(ctx Context)) {
+	p := Cleanup(pattern)
+	r := Dispatcher[method]
+	r.Tree.addNode(p, HandlerFunc(h))
+}
 func AddRouterHandFunc(method, pattern string, h func(ctx Context)) {
 	p := Cleanup(pattern)
 	r := Dispatcher[method]

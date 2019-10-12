@@ -19,6 +19,9 @@ type Context interface {
 	SessionGet(key string) interface{}
 	SessionSet(key string, value interface{})
 	SessionInvalidate()
+	Abort()
+	IsEnd() bool
+	ClientIP() string
 }
 type PathParam map[string]string
 type HttpContext struct {
@@ -27,6 +30,7 @@ type HttpContext struct {
 	params  PathParam
 	Session session.Session
 	context context.Context
+	end     bool
 }
 
 func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, Session session.Session) *HttpContext {
@@ -36,9 +40,29 @@ func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathPara
 		params,
 		nil,
 		nil,
+		false,
 	}
 }
+func (hctx *HttpContext) IsAjax() bool {
+	xrw := hctx.req.Header.Get("X-Requested-With")
+	if xrw != "" && "XMLHttpRequest" == xrw {
+		return true
+	}
+	return false
 
+}
+
+func (hctx *HttpContext) ClientIP() string {
+	return hctx.req.RemoteAddr
+}
+
+func (hctx *HttpContext) IsEnd() bool {
+	return hctx.end
+}
+
+func (hctx *HttpContext) Abort() {
+	hctx.end = true
+}
 func (hctx *HttpContext) SessionGet(key string) interface{} {
 	if hctx.Session != nil {
 		return hctx.Session.Get(key)

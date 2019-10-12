@@ -1,8 +1,7 @@
-package valve
+package router
 
 import (
 	"fmt"
-	"github.com/huyoufu/go-self/router"
 	"testing"
 )
 
@@ -18,8 +17,8 @@ func (X) Haha(ctx router.Context) bool {
 func TestPipeline_First(t *testing.T) {
 
 	pipeline := Pipeline{}
-	pipeline.FirstPF(X{}.Haha)
-	pipeline.Start(nil)
+	FirstPF(X{}.Haha)
+
 }
 func TestPipeline_Two(t *testing.T) {
 
