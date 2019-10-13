@@ -107,12 +107,12 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		httpContext.Session = initSession(s.sessionManager, req, resp)
 	}
 
-	s.pl.Invoke(httpContext)
+	s.pl.Invoke(&httpContext)
 	if httpContext.IsEnd() {
 		httpContext.WriteString("非法请求")
 		return
 	}
-	h.Service(httpContext)
+	h.RouterHandler.Service(&httpContext)
 
 }
 

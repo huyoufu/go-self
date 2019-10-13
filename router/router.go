@@ -7,12 +7,12 @@ import (
 type Routers map[string]router
 
 var Dispatcher = Routers{
-	"GET":     router{"get请求", NewRoot(), nil},
-	"POST":    router{"post请求", NewRoot(), nil},
-	"PUT":     router{"put请求", NewRoot(), nil},
-	"DELETE":  router{"delete请求", NewRoot(), nil},
-	"ANY":     router{"any请求", NewRoot(), nil},
-	"OPTIONS": router{"options请求", NewRoot(), nil},
+	"GET":     router{"get请求", NewRoot()},
+	"POST":    router{"post请求", NewRoot()},
+	"PUT":     router{"put请求", NewRoot()},
+	"DELETE":  router{"delete请求", NewRoot()},
+	"ANY":     router{"any请求", NewRoot()},
+	"OPTIONS": router{"options请求", NewRoot()},
 }
 
 type RouterGroup struct {
@@ -22,7 +22,6 @@ type RouterGroup struct {
 type router struct {
 	name string
 	Tree *Node
-	pl   *Pipeline
 }
 
 func NewGroup(name, groupPath string) *RouterGroup {
@@ -55,20 +54,19 @@ func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context) bool) {
 }
 
 func (rg *RouterGroup) Get(path string, h func(ctx Context)) {
-	AddRouterHandFunc("GET", rg.gpath+path, h)
-
+	AddRouterHandFuncWithPipeline("GET", rg.gpath+path, h, rg.pl)
 }
 func (rg *RouterGroup) Post(path string, h func(ctx Context)) {
-	AddRouterHandFunc("POST", rg.gpath+path, h)
+	AddRouterHandFuncWithPipeline("POST", rg.gpath+path, h, rg.pl)
 }
 func (rg *RouterGroup) Put(path string, h func(ctx Context)) {
-	AddRouterHandFunc("PUT", rg.gpath+path, h)
+	AddRouterHandFuncWithPipeline("PUT", rg.gpath+path, h, rg.pl)
 }
 func (rg *RouterGroup) Delete(path string, h func(ctx Context)) {
-	AddRouterHandFunc("DELETE", rg.gpath+path, h)
+	AddRouterHandFuncWithPipeline("DELETE", rg.gpath+path, h, rg.pl)
 }
 func (rg *RouterGroup) Any(path string, h func(ctx Context)) {
-	AddRouterHandFunc("ANY", rg.gpath+path, h)
+	AddRouterHandFuncWithPipeline("ANY", rg.gpath+path, h, rg.pl)
 }
 
 func Get(pattern string, h func(ctx Context)) {
@@ -89,15 +87,14 @@ func Any(pattern string, h func(ctx Context)) {
 func Options(pattern string, h func(ctx Context)) {
 	AddRouterHandFunc("OPTIONS", pattern, h)
 }
-func AddRouterHandFuncWithPipeline(method, pattern string, h func(ctx Context)) {
+func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl *Pipeline) {
 	p := Cleanup(pattern)
 	r := Dispatcher[method]
-	r.Tree.addNode(p, HandlerFunc(h))
+	handlerPipeline := RouterHandlerPipeline{h, pl}
+	r.Tree.addNode(p, &handlerPipeline)
 }
-func AddRouterHandFunc(method, pattern string, h func(ctx Context)) {
-	p := Cleanup(pattern)
-	r := Dispatcher[method]
-	r.Tree.addNode(p, HandlerFunc(h))
+func AddRouterHandFunc(method, pattern string, h HandlerFunc) {
+	AddRouterHandFuncWithPipeline(method, pattern, h, nil)
 }
 
 func init() {

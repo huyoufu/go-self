@@ -28,12 +28,12 @@ func (p *Pipeline) invoke0(ctx Context) {
 func (p *Pipeline) First(valve Valve) {
 	p.valves.PushFront(valve)
 }
-func (p *Pipeline) FirstPF(vf func(ctx Context) bool) {
-	p.valves.PushFront(ValveFunc(vf))
+func (p *Pipeline) FirstPF(vf ValveFunc) {
+	p.valves.PushFront(vf)
 }
 func (p *Pipeline) Last(valve Valve) {
 	p.valves.PushBack(valve)
 }
-func (p *Pipeline) LastPF(vf func(ctx Context) bool) {
-	p.valves.PushBack(ValveFunc(vf))
+func (p *Pipeline) LastPF(vf ValveFunc) {
+	p.valves.PushBack(vf)
 }

@@ -22,6 +22,8 @@ type Context interface {
 	Abort()
 	IsEnd() bool
 	ClientIP() string
+	Next() //执行下一个拦截器
+
 }
 type PathParam map[string]string
 type HttpContext struct {
@@ -33,8 +35,12 @@ type HttpContext struct {
 	end     bool
 }
 
-func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, Session session.Session) *HttpContext {
-	return &HttpContext{
+func (hctx *HttpContext) Next() {
+	panic("implement me")
+}
+
+func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, Session session.Session) HttpContext {
+	return HttpContext{
 		req,
 		resp,
 		params,
@@ -43,13 +49,15 @@ func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathPara
 		false,
 	}
 }
+
+//此方法不保证 完全正确 因为有时候浏览器发送ajax请求的时候 有可能不会带该请求头
+//此方法只作为临时性实现
 func (hctx *HttpContext) IsAjax() bool {
 	xrw := hctx.req.Header.Get("X-Requested-With")
 	if xrw != "" && "XMLHttpRequest" == xrw {
 		return true
 	}
 	return false
-
 }
 
 func (hctx *HttpContext) ClientIP() string {
