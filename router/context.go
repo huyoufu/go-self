@@ -33,20 +33,22 @@ type HttpContext struct {
 	Session session.Session
 	context context.Context
 	end     bool
+	hp      *RouterHandlerPipeline
 }
 
 func (hctx *HttpContext) Next() {
-	panic("implement me")
+	hctx.hp.Invoke(hctx)
 }
 
-func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, Session session.Session) HttpContext {
-	return HttpContext{
+func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, hp *RouterHandlerPipeline) *HttpContext {
+	return &HttpContext{
 		req,
 		resp,
 		params,
 		nil,
 		nil,
 		false,
+		hp,
 	}
 }
 

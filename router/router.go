@@ -1,6 +1,7 @@
 package router
 
 import (
+	"runtime/pprof"
 	"strings"
 )
 
@@ -17,7 +18,7 @@ var Dispatcher = Routers{
 
 type RouterGroup struct {
 	name, gpath string
-	pl          *Pipeline
+	pl          Pipeline
 }
 type router struct {
 	name string
@@ -28,25 +29,16 @@ func NewGroup(name, groupPath string) *RouterGroup {
 	return &RouterGroup{
 		name,
 		groupPath,
-		New(),
+		NewPipeline(),
 	}
 }
 
-func (rg *RouterGroup) FrontValve(valves ...Valve) {
-	for _, v := range valves {
-		rg.pl.First(v)
-	}
-}
 func (rg *RouterGroup) AppendValve(valves ...Valve) {
 	for _, v := range valves {
 		rg.pl.Last(v)
 	}
 }
-func (rg *RouterGroup) FrontValveF(vfs ...func(ctx Context) bool) {
-	for _, v := range vfs {
-		rg.pl.FirstPF(v)
-	}
-}
+
 func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context) bool) {
 	for _, v := range vfs {
 		rg.pl.LastPF(v)
@@ -87,20 +79,25 @@ func Any(pattern string, h func(ctx Context)) {
 func Options(pattern string, h func(ctx Context)) {
 	AddRouterHandFunc("OPTIONS", pattern, h)
 }
-func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl *Pipeline) {
+func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl Pipeline) {
 	p := Cleanup(pattern)
 	r := Dispatcher[method]
+
 	handlerPipeline := RouterHandlerPipeline{h, pl}
 	r.Tree.addNode(p, &handlerPipeline)
 }
 func AddRouterHandFunc(method, pattern string, h HandlerFunc) {
-	AddRouterHandFuncWithPipeline(method, pattern, h, nil)
+	AddRouterHandFuncWithPipeline(method, pattern, h, NewPipeline())
 }
 
 func init() {
 	AddRouterHandFunc("GET", "/hello", func(ctx Context) {
+		//获取当前服务器的相关信息
 
+		//pprof.StartCPUProfile(ctx.Resp())
+		//pprof.StopCPUProfile()
 		ctx.Resp().Write([]byte("<div style='text-align:center'><a href='http://www.jk1123.com'>www.jk1123.com 怪蜀黍</a></div>"))
+
 	})
 
 }

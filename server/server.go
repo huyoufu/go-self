@@ -16,36 +16,39 @@ type Server struct {
 	cors           bool
 	sessionManager *session.Manager
 	session        bool
-	pl             *router.Pipeline
+	pl             router.Pipeline
 }
 
 func DefaultServer() *Server {
 	server := NewServer()
 	//添加日志拦截
 	server.AppendValveF(func(ctx router.Context) bool {
-		fmt.Println(time.Now().Format("009/01/23 01:23:23") + "|" + ctx.ClientIP() + "|" + ctx.Req().RequestURI)
+
+		start := time.Now().UnixNano()
+
+		ctx.Next()
+		end := time.Now().UnixNano()
+		i := end - start
+		fmt.Printf("花费了:%d", i/1000/1000)
+		return true
+	}, func(ctx router.Context) bool {
+
+		fmt.Println("\x1b[0;31m" + time.Now().Format("2006-01-01 15:04:05") + "|" + ctx.ClientIP() + "|" + ctx.Req().RequestURI + "\n\x1b[0m")
+		ctx.Next()
+
 		return true
 	})
 	return server
 }
-func (s *Server) FrontValve(valves ...router.Valve) {
-	for _, v := range valves {
-		s.pl.First(v)
-	}
-}
+
 func (s *Server) AppendValve(valves ...router.Valve) {
 	for _, v := range valves {
 		s.pl.Last(v)
 	}
 }
-func (s *Server) FrontValveF(vfs ...func(ctx router.Context) bool) {
+func (s *Server) AppendValveF(vfs ...router.ValveFunc) {
 	for _, v := range vfs {
-		s.pl.FirstPF(v)
-	}
-}
-func (s *Server) AppendValveF(vfs ...func(ctx router.Context) bool) {
-	for _, v := range vfs {
-		s.pl.LastPF(v)
+		s.pl = s.pl.LastPF(v)
 	}
 }
 func NewServer() *Server {
@@ -53,7 +56,7 @@ func NewServer() *Server {
 		port:       8847,
 		serverName: "jk1123.com",
 		cors:       false,
-		pl:         router.New(),
+		pl:         router.NewPipeline(),
 	}
 }
 
@@ -92,27 +95,29 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
 	vr := router.Dispatcher[req.Method]
-	_, h, params := vr.Tree.Search(req.URL.Path)
+	_, hp, params := vr.Tree.Search(req.URL.Path)
 	//fmt.Println("hahha")
-	if h == nil {
-		_, h, params = router.Dispatcher["ANY"].Tree.Search(req.URL.Path)
+	if hp == nil {
+		_, hp, params = router.Dispatcher["ANY"].Tree.Search(req.URL.Path)
 	}
-	if h == nil {
+	if hp == nil {
 		http.NotFoundHandler().ServeHTTP(resp, req)
 		return
 	}
-	httpContext := router.NewHttpContext(req, resp, params, nil)
+
+	//获取sever的pipeline
+	pl := router.Compose(s.pl, hp.GetPipeLine())
+	nhp := router.NewRouterHandlerPipeline(pl)
+	nhp.RouterHandler = hp.RouterHandler
+
+	httpContext := router.NewHttpContext(req, resp, params, nhp)
 	if s.session {
 		//支持session
 		httpContext.Session = initSession(s.sessionManager, req, resp)
 	}
 
-	s.pl.Invoke(&httpContext)
-	if httpContext.IsEnd() {
-		httpContext.WriteString("非法请求")
-		return
-	}
-	h.RouterHandler.Service(&httpContext)
+	//开始执行整个链
+	nhp.Invoke(httpContext)
 
 }
 
