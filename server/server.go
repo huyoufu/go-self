@@ -29,13 +29,11 @@ func DefaultServer() *Server {
 		ctx.Next()
 		end := time.Now().UnixNano()
 		i := end - start
-		fmt.Printf("花费了:%d", i/1000/1000)
+		fmt.Printf("Request cost:%d\n", i/1000/1000)
 		return true
 	}, func(ctx router.Context) bool {
-
-		fmt.Println("\x1b[0;31m" + time.Now().Format("2006-01-01 15:04:05") + "|" + ctx.ClientIP() + "|" + ctx.Req().RequestURI + "\n\x1b[0m")
+		fmt.Println("\x1b[0;31m" + time.Now().Format("2006-01-01 15:04:05") + " | " + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
 		ctx.Next()
-
 		return true
 	})
 	return server

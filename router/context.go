@@ -14,6 +14,8 @@ type Context interface {
 	Resp() http.ResponseWriter
 	PathParamValue(name string) string
 	Bind(bean interface{}) error
+	GetParameter(name string) string
+	GetParameterValues(name string) []string
 	WriteString(string)
 	WriteJson(bean interface{})
 	SessionGet(key string) interface{}
@@ -60,6 +62,31 @@ func (hctx *HttpContext) IsAjax() bool {
 		return true
 	}
 	return false
+}
+
+func (hctx *HttpContext) GetParameter(name string) string {
+	hctx.req.ParseForm()
+	return hctx.req.Form.Get(name)
+}
+func (hctx *HttpContext) GetParameterValues(name string) []string {
+	if hctx.req.Method == http.MethodGet {
+		//get请求 直接去获取查询字符串
+		vs := hctx.req.URL.Query()
+		for k, v := range vs {
+			if k == name {
+				return v
+			}
+		}
+	} else {
+		hctx.req.ParseForm()
+		vs := hctx.req.Form
+		for k, v := range vs {
+			if k == name {
+				return v
+			}
+		}
+	}
+	return nil
 }
 
 func (hctx *HttpContext) ClientIP() string {
