@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/huyoufu/go-self/logger"
 	"github.com/huyoufu/go-self/router"
 	"github.com/huyoufu/go-self/session"
@@ -22,19 +21,17 @@ type Server struct {
 func DefaultServer() *Server {
 	server := NewServer()
 	//添加日志拦截
-	server.AppendValveF(func(ctx router.Context) bool {
+	server.AppendValveF(func(ctx router.Context) {
 
 		start := time.Now().UnixNano()
 
 		ctx.Next()
 		end := time.Now().UnixNano()
 		i := end - start
-		fmt.Printf("Request cost:%d\n", i/1000/1000)
-		return true
-	}, func(ctx router.Context) bool {
-		fmt.Println("\x1b[0;31m" + time.Now().Format("2006-01-01 15:04:05") + " | " + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
+		logger.InfoF("Request cost:%d\n", i/1000/1000)
+	}, func(ctx router.Context) {
+		logger.Info("\x1b[0;31m" + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
 		ctx.Next()
-		return true
 	})
 	return server
 }

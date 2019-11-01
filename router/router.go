@@ -38,9 +38,9 @@ func (rg *RouterGroup) AppendValve(valves ...Valve) {
 	}
 }
 
-func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context) bool) {
+func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context)) {
 	for _, v := range vfs {
-		rg.pl.LastPF(v)
+		rg.pl = rg.pl.LastPF(v)
 	}
 }
 
