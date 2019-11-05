@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/huyoufu/go-self/logger"
+	. "github.com/huyoufu/go-self/logger"
 	"github.com/huyoufu/go-self/router"
 	"github.com/huyoufu/go-self/session"
 	"net/http"
@@ -28,9 +28,10 @@ func DefaultServer() *Server {
 		ctx.Next()
 		end := time.Now().UnixNano()
 		i := end - start
-		logger.InfoF("Request cost:%d\n", i/1000/1000)
+		Log.Infof("Request cost:%d", i/1000/1000)
 	}, func(ctx router.Context) {
-		logger.Info("\x1b[0;31m" + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
+		//logger.Log.Infof("\x1b[0;31m" + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
+		Log.Info(ctx.ClientIP() + " | " + ctx.Req().RequestURI)
 		ctx.Next()
 	})
 	return server
@@ -67,7 +68,7 @@ func (s *Server) Port(port int) {
 	s.port = port
 }
 func (s *Server) Start() {
-	logger.InfoF("server will start on port: %d", s.port)
+	Log.Infof("server will start on port: %d", s.port)
 	if s.session {
 		s.sessionManager.StartGC()
 	}

@@ -1,95 +1,79 @@
 package logger
 
 import (
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-const (
-	Level_fetal = iota //fetal级别
-	Level_error        //error级别
-	Level_info         //info级别
-	Level_debug        //debug级别
-)
+type FuncInfoHook struct {
+	mu sync.Mutex
+}
 
-var log_level = Level_info
+func (hook *FuncInfoHook) Fire(entry *logrus.Entry) error {
+	hook.mu.Lock()
+	defer hook.mu.Unlock()
+	info := GenerateFuncInfo()
+	entry.Data["func"] = info
+	return nil
+}
+
+func (hook *FuncInfoHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+var Log = logrus.New()
 
 func init() {
-	log.SetFlags(log.LstdFlags | log.Llongfile)
-}
-func ChangeLevel(level int) {
-	log_level = level
+
+	// 为当前logrus实例设置消息的输出，同样地，
+	// 可以设置logrus实例的输出到任意io.writer
+	Log.Out = os.Stdout
+
+	// 为当前logrus实例设置消息输出格式为json格式。
+	// 同样地，也可以单独为某个logrus实例设置日志级别和hook，这里不详细叙述。
+	Log.Formatter = &logrus.JSONFormatter{}
+
+	Log.AddHook(&FuncInfoHook{})
+
 }
 
-func Debug(msg string) {
-	if log_level >= Level_debug {
-		log.Print(msg)
-	}
-}
-func DebugF(partten string, msg ...interface{}) {
-	if log_level >= Level_debug {
-		log.Printf(partten, msg)
-	}
-}
-func Info(msg string) {
-	if log_level >= Level_info {
-		log.Print(msg)
-	}
-}
-func InfoF(partten string, msg ...interface{}) {
-	if log_level >= Level_info {
-		log.Printf(partten, msg)
-	}
-}
-func Error(msg string) {
-	if log_level >= Level_error {
-		log.Print(msg)
-	}
-}
-func ErrorF(partten string, msg ...interface{}) {
-	if log_level >= Level_error {
-		log.Printf(partten, msg)
-	}
-}
-func Fetal(msg string) {
-	if log_level >= Level_fetal {
-		log.Print(msg)
-	}
-	os.Exit(1)
-}
-func FetalF(partten string, msg ...interface{}) {
-	if log_level >= Level_fetal {
-		log.Printf(partten, msg)
-	}
-	os.Exit(1)
-}
 func GenerateFuncInfo() string {
 	//pc, file, line, ok := runtime.Caller(1)
 	//.Print(pc,file,line,ok)
 	//创建一个存放堆栈信息的 切片
-	pc := make([]uintptr, 1) // at least 1 entry needed
+	pc := make([]uintptr, 10) // at least 1 entry needed
 	// skip参数 如果是0 标识当前函数 1代表上级调用者 2 代表更上级调用者 以此类推
-	n := runtime.Callers(2, pc)
+	n := runtime.Callers(3, pc)
 
 	//获取堆栈列表
 	frames := runtime.CallersFrames(pc[:n])
 	//我们只需要一个 无需遍历 取出第一个即可
-	frame, _ := frames.Next()
+	var f runtime.Frame
+	more := true
+	contain := false
+	for f, more = frames.Next(); more; f, more = frames.Next() {
+		//fmt.Println(f.Function)
+		file := f.File
+		if strings.Contains(file, "sirupsen/logrus") {
+			contain = true
+			continue
+		}
+		if contain {
+			break
+		}
+	}
 
-	packageAndFunc := frame.Function
-	index := strings.LastIndex(packageAndFunc, ".")
-	pkgName := packageAndFunc[:index]
-	funcName := packageAndFunc[index+1:]
+	funcName := f.Function
+	file := f.File
+	index := strings.LastIndex(file, "/")
+	file = file[index+1:]
 
-	file := frame.File
-
-	funcFile := strings.Split(file, pkgName)[1]
-
-	funcLine := strconv.Itoa(frame.Line)
-
-	printFuncStr := pkgName + funcFile + ":" + funcLine + "-" + funcName
+	funcLine := strconv.Itoa(f.Line)
+	//time.Now().Format("2006-01-02 15:04:05")+" "
+	printFuncStr := funcName + "@" + file + ":" + funcLine
 	return printFuncStr
 }

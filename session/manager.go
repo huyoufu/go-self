@@ -2,7 +2,7 @@ package session
 
 import (
 	"fmt"
-	"github.com/huyoufu/go-self/logger"
+	. "github.com/huyoufu/go-self/logger"
 	"github.com/satori/go.uuid"
 	"sync"
 	"time"
@@ -81,13 +81,13 @@ func (m *Manager) StartGC() {
 	m.gc()
 }
 func (m *Manager) gc() {
-	logger.Debug("start sessions gc")
+	Log.Debugf("start sessions gc")
 	m.sessions.Range(func(key, value interface{}) bool {
 		s := value.(Session)
 		c1 := time.Now().UnixNano() / 1e6
 		c2 := s.LastAccessedTime().UnixNano() / 1e6
 		if c1-c2 > m.lifeTime {
-			logger.DebugF("正在删除:%d", s.Id())
+			Log.Debugf("正在删除:%d", s.Id())
 			m.sessions.Delete(key)
 		}
 		return true
