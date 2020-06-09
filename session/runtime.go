@@ -40,7 +40,7 @@ func (s *RuntimeSession) Remove(name string) {
 	s.attributes.Delete(name)
 }
 func (s *RuntimeSession) Invalidate() {
-
+	s.manager.Remove(s)
 }
 func (s *RuntimeSession) LastAccessedTime() time.Time {
 	return s.lastAccessedTime

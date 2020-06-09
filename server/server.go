@@ -38,6 +38,7 @@ func DefaultServer() *Server {
 }
 
 func (s *Server) AppendValve(valves ...router.Valve) {
+
 	for _, v := range valves {
 		s.pl.Last(v)
 	}
