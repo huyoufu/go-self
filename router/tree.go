@@ -48,6 +48,10 @@ func (root *Node) addNode(pattern string, handlerPipeline *RouterHandlerPipeline
 	if "/*" == pattern {
 		panic("路径错误")
 	}
+	if "/" == pattern {
+		root.handlerPipeline = handlerPipeline
+		return
+	}
 	//例子 /user/:id
 	subPaths := strings.Split(pattern, "/")[1:]
 	root.add(subPaths, handlerPipeline)

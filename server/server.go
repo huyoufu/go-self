@@ -51,7 +51,7 @@ func (s *Server) AppendValveF(vfs ...router.ValveFunc) {
 func NewServer() *Server {
 	return &Server{
 		port:       8847,
-		serverName: "jk1123.com",
+		serverName: "self",
 		cors:       false,
 		pl:         router.NewPipeline(),
 	}
