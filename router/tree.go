@@ -166,6 +166,9 @@ func newChild(parent *Node, subPaths []string, directParent bool, handlerPipelin
 }
 
 func (root *Node) Search(pattern string) (*Node, *RouterHandlerPipeline, PathParam) {
+	if "/" == pattern {
+		return root, root.handlerPipeline, nil
+	}
 	subPaths := strings.Split(pattern, "/")[1:]
 
 	return root.search0(subPaths)
