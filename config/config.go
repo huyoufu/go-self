@@ -1,9 +1,12 @@
 package config
 
 type Config struct {
-	Port          int
-	Cors          bool
-	EnableSession bool
-	LogLevel      int
-	ServerName    string
+	ServerConfig ServerConfig `yaml:"server"`
+}
+type ServerConfig struct {
+	Port          int    `yaml:"port"`
+	Cors          bool   `yaml:"cors"`
+	EnableSession bool   `yaml:"enableSession"`
+	LogLevel      int    `yaml:"logLevel"`
+	ServerName    string `yaml:"serverName"`
 }
