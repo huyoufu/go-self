@@ -14,16 +14,6 @@ type RuntimeSession struct {
 	lock             *sync.RWMutex
 	manager          *Manager
 	isNew            bool
-	/*
-		Id() string
-		Get(name string) interface{}
-		Set(name string, value interface{})
-		Remove(name string)
-		Invalidate()
-		LastAccessedTime() time.Time
-		CreationTime() time.Time
-		Names() []string
-	*/
 }
 
 func (s *RuntimeSession) Id() string {
@@ -53,8 +43,10 @@ func (s *RuntimeSession) Names() []string {
 }
 func (s *RuntimeSession) access() {
 	s.lock.Lock()
+	defer s.lock.Unlock()
 	s.lastAccessedTime = time.Now()
-	s.lock.Unlock()
+	s.isNew = false
+
 }
 func (s *RuntimeSession) IsNew() bool {
 	return s.isNew

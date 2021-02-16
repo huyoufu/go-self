@@ -3,16 +3,25 @@ package config
 import (
 	"fmt"
 	"github.com/go-yaml/yaml"
-	"io/ioutil"
 	"os"
 	"testing"
 )
 
 func TestConfig(t *testing.T) {
-	bytes, _ := ioutil.ReadFile("example.yaml")
+
+	file, _ := os.Open("example.yaml")
+	decoder := yaml.NewDecoder(file)
+
 	config := &Config{}
-	yaml.Unmarshal(bytes, config)
+	err := decoder.Decode(config)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(config)
+}
+func TestXml(t *testing.T) {
+
 }
 func TestPath(t *testing.T) {
 	wd, _ := os.Getwd()

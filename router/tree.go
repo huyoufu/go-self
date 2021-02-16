@@ -13,16 +13,16 @@ const (
 )
 
 type Node struct {
-	path            string                 //当前节点路径
-	level           int                    //节点等级
-	fullPath        string                 //全路径
-	wildChild       bool                   //是否是子节点
-	nType           nodeType               //节点类型
-	paramName       string                 //如果为参数节点  存储该参数名字
-	children        []*Node                // 节点的子节点列表
-	indices         []string               //下级子节点索引
-	parent          *Node                  //父节点
-	handlerPipeline *RouterHandlerPipeline //处理器链 包含处理器和过滤器链
+	path            string           //当前节点路径
+	level           int              //节点等级
+	fullPath        string           //全路径
+	wildChild       bool             //是否是子节点
+	nType           nodeType         //节点类型
+	paramName       string           //如果为参数节点  存储该参数名字
+	children        []*Node          // 节点的子节点列表
+	indices         []string         //下级子节点索引
+	parent          *Node            //父节点
+	handlerPipeline *HandlerPipeline //处理器链 包含处理器和过滤器链
 }
 
 func NewRoot() *Node {
@@ -44,7 +44,7 @@ func NewRoot() *Node {
 //1.static	  /user/add
 //2.root     /*
 //3.param    /user/:uid  /user/:uid/info
-func (root *Node) addNode(pattern string, handlerPipeline *RouterHandlerPipeline) {
+func (root *Node) addNode(pattern string, handlerPipeline *HandlerPipeline) {
 	if "/*" == pattern {
 		panic("路径错误")
 	}
@@ -58,10 +58,10 @@ func (root *Node) addNode(pattern string, handlerPipeline *RouterHandlerPipeline
 }
 
 // subPaths=[users :id xxx]  /user/:id/xxx
-func (n *Node) add(subPaths []string, handlerPipeline *RouterHandlerPipeline) {
+func (root *Node) add(subPaths []string, handlerPipeline *HandlerPipeline) {
 	//如果是根节点 肯定白搭
 	var paths_len = len(subPaths)
-	if n.level < paths_len {
+	if root.level < paths_len {
 		//如果比当前path的长度小 说明是该节点的上级节点
 		//判断路径长度 跟当前节点等级
 		//如果路径为3
@@ -70,11 +70,11 @@ func (n *Node) add(subPaths []string, handlerPipeline *RouterHandlerPipeline) {
 		//二级节点 2 /user/:id
 		//三级节点 3 /user/:id/xx
 
-		if paths_len-n.level > 1 {
+		if paths_len-root.level > 1 {
 			var zf *Node
 			//新增节点的祖父节点
-			if len(n.children) > 0 {
-				for _, c := range n.children {
+			if len(root.children) > 0 {
+				for _, c := range root.children {
 					//还有一种情况就是 该节点已经 param类型节点 那么我们就认为已经存在了
 					//也就是在同一级中不允许出现2个以上的param节点
 					//例如 /questions/:qaid/answer/:id
@@ -90,7 +90,7 @@ func (n *Node) add(subPaths []string, handlerPipeline *RouterHandlerPipeline) {
 							break
 						}
 					}
-					if c.path == subPaths[n.level] {
+					if c.path == subPaths[root.level] {
 						//相同则说明 该 祖父节点已经有了
 						zf = c
 						//不需要创建
@@ -99,15 +99,15 @@ func (n *Node) add(subPaths []string, handlerPipeline *RouterHandlerPipeline) {
 				}
 			}
 			if zf == nil {
-				zf = newChild(n, subPaths, false, handlerPipeline)
+				zf = newChild(root, subPaths, false, handlerPipeline)
 			}
 			zf.add(subPaths, handlerPipeline)
 		} else {
 			//当前的父节点
 			//判断之前父节点中是否已经创建过了该节点了
-			checkPath(n, subPaths[n.level])
+			checkPath(root, subPaths[root.level])
 
-			newChild(n, subPaths, true, handlerPipeline)
+			newChild(root, subPaths, true, handlerPipeline)
 		}
 	} else {
 		//do nothing
@@ -128,8 +128,8 @@ func checkPath(parent *Node, path string) {
 }
 
 //新增节点
-func newChild(parent *Node, subPaths []string, directParent bool, handlerPipeline *RouterHandlerPipeline) *Node {
-	var h *RouterHandlerPipeline
+func newChild(parent *Node, subPaths []string, directParent bool, handlerPipeline *HandlerPipeline) *Node {
+	var h *HandlerPipeline
 	//是否是直接父节点
 	if directParent {
 		h = handlerPipeline
@@ -165,7 +165,7 @@ func newChild(parent *Node, subPaths []string, directParent bool, handlerPipelin
 	return child
 }
 
-func (root *Node) Search(pattern string) (*Node, *RouterHandlerPipeline, PathParam) {
+func (root *Node) Search(pattern string) (*Node, *HandlerPipeline, PathParam) {
 	if "/" == pattern {
 		return root, root.handlerPipeline, nil
 	}
@@ -173,7 +173,7 @@ func (root *Node) Search(pattern string) (*Node, *RouterHandlerPipeline, PathPar
 
 	return root.search0(subPaths)
 }
-func (root *Node) search0(subPaths []string) (rn *Node, h *RouterHandlerPipeline, pathParam PathParam) {
+func (root *Node) search0(subPaths []string) (rn *Node, h *HandlerPipeline, pathParam PathParam) {
 	pathParam = map[string]string{}
 walk:
 	for {

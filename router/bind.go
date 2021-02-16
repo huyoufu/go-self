@@ -8,66 +8,66 @@ import (
 	"time"
 )
 
-const default_date_partten = "2006-01-02"
+const defaultDatePattern = "2006-01-02"
 
-func Bind(beans interface{}, form map[string][]string) error {
+func Bind(bean interface{}, form map[string][]string) error {
 	//将数据绑定给bean bean必须是指针类型的 不然会报错的
-	typ := reflect.TypeOf(beans).Elem()
-	val := reflect.ValueOf(beans).Elem()
+	typ := reflect.TypeOf(bean).Elem()
+	val := reflect.ValueOf(bean).Elem()
 
 	for i := 0; i < typ.NumField(); i++ {
 		//遍历字段集合
-		field_type := typ.Field(i)
-		field_val := val.Field(i)
-		if !field_val.CanSet() {
+		fieldType := typ.Field(i)
+		fieldVal := val.Field(i)
+		if !fieldVal.CanSet() {
 			//如果该字段是私有的 直接放弃
 			continue
 		}
 		//返回字段的类型
-		field_type_kind := field_type.Type.Kind()
+		fieldTypeKind := fieldType.Type.Kind()
 		//进行设置值
 		//结构体类型特殊
-		if field_type_kind == reflect.Struct && !isTimeType(field_type.Type) {
+		if fieldTypeKind == reflect.Struct && !isTimeType(fieldType.Type) {
 			//正常的结构体类型
 			//fmt.Println("结构体类型:")
 			//递归调用
 
-			Bind(field_val.Addr().Interface(), form)
+			Bind(fieldVal.Addr().Interface(), form)
 		}
 		//先去map集合中获取对应的值
-		lower := firstLower(field_type.Name)
+		lower := firstLower(fieldType.Name)
 		value, exist := getValues(form, lower)
 		if !exist {
 			continue
 		}
 
-		if field_type_kind == reflect.Slice {
+		if fieldTypeKind == reflect.Slice {
 			//fmt.Println("切片类型")
 			//切片类型 先判断给出值对应的值 切片个数
 			//获取切片的类型
-			slice_type := field_type.Type.Elem()
-			value_len := len(value)
+			sliceType := fieldType.Type.Elem()
+			valueLen := len(value)
 			//创建一个对应类型的切片
-			slice_value := reflect.MakeSlice(field_type.Type, value_len, value_len)
-			for i := 0; i < value_len; i++ {
-				if err := setWithProperType(slice_type.Kind(), value[i], slice_value.Index(i)); err != nil {
+			slice_value := reflect.MakeSlice(fieldType.Type, valueLen, valueLen)
+			for i := 0; i < valueLen; i++ {
+				if err := setWithProperType(sliceType.Kind(), value[i], slice_value.Index(i)); err != nil {
 					return err
 				}
 			}
 			//fmt.Println(slice_value)
-			field_val.Set(slice_value)
-		} else if field_type_kind == reflect.Struct && isTimeType(field_type.Type) {
+			fieldVal.Set(slice_value)
+		} else if fieldTypeKind == reflect.Struct && isTimeType(fieldType.Type) {
 			//fmt.Println("日期类型")
-			time_value, e := time.Parse(default_date_partten, value[0])
+			time_value, e := time.Parse(defaultDatePattern, value[0])
 			if e != nil {
 				return e
 			}
-			field_val.Set(reflect.ValueOf(time_value))
+			fieldVal.Set(reflect.ValueOf(time_value))
 		} else {
 			//普通类型
 			//fmt.Println("普通类型")
 
-			setWithProperType(field_type_kind, value[0], field_val)
+			setWithProperType(fieldTypeKind, value[0], fieldVal)
 		}
 	}
 	return nil
@@ -92,7 +92,7 @@ func getValues(form map[string][]string, key string) (vals []string, exist bool)
 
 }
 func getKeys(form map[string][]string) []string {
-	result := []string{}
+	var result []string
 	for key := range form {
 		result = append(result, key)
 	}

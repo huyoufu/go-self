@@ -15,7 +15,7 @@ var Dispatcher = Routers{
 	"OPTIONS": router{"options请求", NewRoot()},
 }
 
-type RouterGroup struct {
+type Group struct {
 	name, gpath string
 	pl          Pipeline
 }
@@ -24,39 +24,39 @@ type router struct {
 	Tree *Node
 }
 
-func NewGroup(name, groupPath string) *RouterGroup {
-	return &RouterGroup{
+func NewGroup(name, groupPath string) *Group {
+	return &Group{
 		name,
 		groupPath,
 		NewPipeline(),
 	}
 }
 
-func (rg *RouterGroup) AppendValve(valves ...Valve) {
+func (rg *Group) AppendValve(valves ...Valve) {
 	for _, v := range valves {
 		rg.pl.Last(v)
 	}
 }
 
-func (rg *RouterGroup) AppendValveF(vfs ...func(ctx Context)) {
+func (rg *Group) AppendValveF(vfs ...func(ctx Context)) {
 	for _, v := range vfs {
 		rg.pl = rg.pl.LastPF(v)
 	}
 }
 
-func (rg *RouterGroup) Get(path string, h func(ctx Context)) {
+func (rg *Group) Get(path string, h func(ctx Context)) {
 	AddRouterHandFuncWithPipeline("GET", rg.gpath+path, h, rg.pl)
 }
-func (rg *RouterGroup) Post(path string, h func(ctx Context)) {
+func (rg *Group) Post(path string, h func(ctx Context)) {
 	AddRouterHandFuncWithPipeline("POST", rg.gpath+path, h, rg.pl)
 }
-func (rg *RouterGroup) Put(path string, h func(ctx Context)) {
+func (rg *Group) Put(path string, h func(ctx Context)) {
 	AddRouterHandFuncWithPipeline("PUT", rg.gpath+path, h, rg.pl)
 }
-func (rg *RouterGroup) Delete(path string, h func(ctx Context)) {
+func (rg *Group) Delete(path string, h func(ctx Context)) {
 	AddRouterHandFuncWithPipeline("DELETE", rg.gpath+path, h, rg.pl)
 }
-func (rg *RouterGroup) Any(path string, h func(ctx Context)) {
+func (rg *Group) Any(path string, h func(ctx Context)) {
 	AddRouterHandFuncWithPipeline("ANY", rg.gpath+path, h, rg.pl)
 }
 
@@ -82,7 +82,7 @@ func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl Pip
 	p := Cleanup(pattern)
 	r := Dispatcher[method]
 
-	handlerPipeline := RouterHandlerPipeline{h, pl}
+	handlerPipeline := HandlerPipeline{h, pl}
 	r.Tree.addNode(p, &handlerPipeline)
 }
 func AddRouterHandFunc(method, pattern string, h HandlerFunc) {

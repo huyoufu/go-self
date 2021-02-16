@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLog(t *testing.T) {
+func TestLog1(t *testing.T) {
 	Log.Info("你好")
 
 }

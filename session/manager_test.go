@@ -18,10 +18,12 @@ func TestClean1(t *testing.T) {
 	}
 }
 func TestClean2(t *testing.T) {
+	name, _ := net.InterfaceByName("localhost")
+	fmt.Print(name)
 
 	addrs, _ := net.InterfaceAddrs()
 	for _, address := range addrs {
-		fmt.Println(address)
+		fmt.Println(address.Network(), address.String())
 	}
 
 }
@@ -34,6 +36,7 @@ func TestRand2(t *testing.T) {
 func TestGC(t *testing.T) {
 
 	manager := DefaultManager()
+	manager.lifeTime = 5 * 1000
 	manager.StartGC()
 	manager.NewSession()
 	manager.NewSession()
@@ -52,7 +55,8 @@ func TestGC(t *testing.T) {
 	})
 
 }
-func TestFprint(t *testing.T) {
+
+func TestPrintf(t *testing.T) {
 	time.Now().String()
 	fmt.Printf("%s", time.Now().Format("2006-01-02 15:04:05"))
 

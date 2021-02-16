@@ -1,5 +1,6 @@
+mode: test
 server:
   port: 8888
   enableSession: true
-  serverName: 小户
+  serverName: jk1123.com
   

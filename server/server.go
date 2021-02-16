@@ -105,7 +105,7 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	//获取sever的pipeline
 	pl := router.Compose(s.pl, hp.GetPipeLine())
 	nhp := router.NewRouterHandlerPipeline(pl)
-	nhp.RouterHandler = hp.RouterHandler
+	nhp.Handler = hp.Handler
 
 	httpContext := router.NewHttpContext(req, resp, params, nhp)
 	if s.session {
@@ -124,7 +124,7 @@ func initSession(manager *session.Manager, request *http.Request, resp http.Resp
 
 	if cookies != nil && len(cookies) > 0 {
 		for _, c := range cookies {
-			if session.SessionCookieName == c.Name {
+			if session.CookieName == c.Name {
 				sessionCookie = c
 				break
 			}
@@ -135,7 +135,7 @@ func initSession(manager *session.Manager, request *http.Request, resp http.Resp
 	} else {
 		s = manager.NewSession()
 		sessionCookie = &http.Cookie{
-			Name:  session.SessionCookieName,
+			Name:  session.CookieName,
 			Value: s.Id(),
 			Path:  "/",
 		}

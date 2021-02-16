@@ -1,6 +1,6 @@
 package router
 
-type RouterHandler interface {
+type Handler interface {
 	Service(ctx Context)
 }
 type HandlerFunc func(ctx Context)

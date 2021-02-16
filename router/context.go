@@ -35,14 +35,14 @@ type HttpContext struct {
 	Session session.Session
 	context context.Context
 	end     bool
-	hp      *RouterHandlerPipeline
+	hp      *HandlerPipeline
 }
 
 func (hctx *HttpContext) Next() {
 	hctx.hp.Invoke(hctx)
 }
 
-func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, hp *RouterHandlerPipeline) *HttpContext {
+func NewHttpContext(req *http.Request, resp http.ResponseWriter, params PathParam, hp *HandlerPipeline) *HttpContext {
 	return &HttpContext{
 		req,
 		resp,
@@ -98,6 +98,7 @@ func (hctx *HttpContext) IsEnd() bool {
 }
 
 func (hctx *HttpContext) Abort() {
+
 	hctx.end = true
 }
 func (hctx *HttpContext) SessionGet(key string) interface{} {

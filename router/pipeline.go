@@ -1,7 +1,7 @@
 package router
 
-type RouterHandlerPipeline struct {
-	RouterHandler
+type HandlerPipeline struct {
+	Handler
 	pl Pipeline
 }
 type Pipeline struct {
@@ -15,8 +15,8 @@ func NewPipeline() Pipeline {
 	return p
 }
 
-func NewRouterHandlerPipeline(pl Pipeline) *RouterHandlerPipeline {
-	hp := &RouterHandlerPipeline{}
+func NewRouterHandlerPipeline(pl Pipeline) *HandlerPipeline {
+	hp := &HandlerPipeline{}
 	hp.pl = pl
 	return hp
 }
@@ -35,13 +35,13 @@ func Compose(spl, hpl Pipeline) Pipeline {
 	return result
 
 }
-func (hp *RouterHandlerPipeline) GetPipeLine() Pipeline {
+func (hp *HandlerPipeline) GetPipeLine() Pipeline {
 	return hp.pl
 }
-func (hp *RouterHandlerPipeline) Invoke(ctx Context) {
+func (hp *HandlerPipeline) Invoke(ctx Context) {
 	hp.invoke0(ctx)
 }
-func (hp *RouterHandlerPipeline) invoke0(ctx Context) {
+func (hp *HandlerPipeline) invoke0(ctx Context) {
 	/*for item := hp.pl.valves.Front(); nil != item; item = item.Next() {
 		v := item.Value.(Valve)
 		v.process(ctx)
@@ -54,11 +54,11 @@ func (hp *RouterHandlerPipeline) invoke0(ctx Context) {
 			hp.pl.pos = pos
 			v.process(ctx)
 		} else {
-			hp.RouterHandler.Service(ctx)
+			hp.Handler.Service(ctx)
 		}
 
 	} else {
-		hp.RouterHandler.Service(ctx)
+		hp.Handler.Service(ctx)
 	}
 
 }
