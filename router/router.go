@@ -17,7 +17,7 @@ var Dispatcher = Routers{
 
 type Group struct {
 	name, gpath string
-	pl          Pipeline
+	pl          *Pipeline
 }
 type router struct {
 	name string
@@ -78,7 +78,7 @@ func Any(pattern string, h func(ctx Context)) {
 func Options(pattern string, h func(ctx Context)) {
 	AddRouterHandFunc("OPTIONS", pattern, h)
 }
-func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl Pipeline) {
+func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl *Pipeline) {
 	p := Cleanup(pattern)
 	r := Dispatcher[method]
 

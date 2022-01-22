@@ -15,7 +15,7 @@ type Server struct {
 	cors           bool
 	sessionManager *session.Manager
 	session        bool
-	pl             router.Pipeline
+	pl             *router.Pipeline
 }
 
 func DefaultServer() *Server {

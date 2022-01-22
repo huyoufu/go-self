@@ -2,25 +2,25 @@ package router
 
 type HandlerPipeline struct {
 	Handler
-	pl Pipeline
+	pl *Pipeline
 }
 type Pipeline struct {
 	pos, n int
 	valves []Valve
 }
 
-func NewPipeline() Pipeline {
-	p := Pipeline{}
-	p.valves = make([]Valve, 2)
+func NewPipeline() *Pipeline {
+	p := &Pipeline{}
+	p.valves = nil
 	return p
 }
 
-func NewRouterHandlerPipeline(pl Pipeline) *HandlerPipeline {
+func NewRouterHandlerPipeline(pl *Pipeline) *HandlerPipeline {
 	hp := &HandlerPipeline{}
 	hp.pl = pl
 	return hp
 }
-func Compose(spl, hpl Pipeline) Pipeline {
+func Compose(spl, hpl *Pipeline) *Pipeline {
 	result := NewPipeline()
 	for _, v := range spl.valves {
 		if v != nil {
@@ -35,7 +35,7 @@ func Compose(spl, hpl Pipeline) Pipeline {
 	return result
 
 }
-func (hp *HandlerPipeline) GetPipeLine() Pipeline {
+func (hp *HandlerPipeline) GetPipeLine() *Pipeline {
 	return hp.pl
 }
 func (hp *HandlerPipeline) Invoke(ctx Context) {
@@ -63,12 +63,12 @@ func (hp *HandlerPipeline) invoke0(ctx Context) {
 
 }
 
-func (p Pipeline) Last(valve Valve) Pipeline {
+func (p *Pipeline) Last(valve Valve) *Pipeline {
 	p.valves = append(p.valves, valve)
 
 	return p
 }
-func (p Pipeline) LastPF(vf ValveFunc) Pipeline {
+func (p *Pipeline) LastPF(vf ValveFunc) *Pipeline {
 	p.valves = append(p.valves, vf)
 
 	return p
