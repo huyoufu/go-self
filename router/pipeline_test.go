@@ -27,7 +27,6 @@ func TestPipeline_First(t *testing.T) {
 
 	for _, v := range pl.valves {
 		fmt.Println(v)
-
 	}
 
 }

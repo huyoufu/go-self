@@ -32,7 +32,7 @@ func init() {
 	// 为当前logrus实例设置消息的输出，同样地，
 	// 可以设置logrus实例的输出到任意io.writer
 	Log.Out = os.Stdout
-	logFile, _ := os.OpenFile("test.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	logFile, _ := os.OpenFile("self.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	Log.Out = logFile
 
 	// 为当前logrus实例设置消息输出格式为json格式。

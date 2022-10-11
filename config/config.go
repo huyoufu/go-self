@@ -9,6 +9,7 @@ const (
 type Config struct {
 	Mode         string        `yaml:"mode"` //模式 可选为 dev,test,product
 	ServerConfig *ServerConfig `yaml:"server"`
+	SeverName    string        `yaml:"server.name"`
 }
 
 type ServerConfig struct {
