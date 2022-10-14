@@ -10,7 +10,7 @@ import (
 
 const defaultDatePattern = "2006-01-02"
 
-func Bind(bean interface{}, form map[string][]string) error {
+func bind(bean interface{}, form map[string][]string) error {
 	//将数据绑定给bean bean必须是指针类型的 不然会报错的
 	typ := reflect.TypeOf(bean).Elem()
 	val := reflect.ValueOf(bean).Elem()
@@ -32,7 +32,7 @@ func Bind(bean interface{}, form map[string][]string) error {
 			//fmt.Println("结构体类型:")
 			//递归调用
 
-			Bind(fieldVal.Addr().Interface(), form)
+			bind(fieldVal.Addr().Interface(), form)
 		}
 		//先去map集合中获取对应的值
 		lower := firstLower(fieldType.Name)

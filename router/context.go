@@ -5,8 +5,10 @@ import (
 	_ "github.com/huyoufu/go-self/json"
 	"github.com/huyoufu/go-self/session"
 	"github.com/json-iterator/go"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Context interface {
@@ -125,10 +127,15 @@ func (hctx *HttpContext) Req() *http.Request {
 	return hctx.req
 }
 func (hctx *HttpContext) Bind(bean interface{}) error {
-	hctx.req.ParseForm()
-	//e := bind.Bind(bean, hctx.req.PostForm)
-	e := Bind(bean, hctx.req.Form)
-	return e
+	contentType := hctx.Req().Header.Get("Content-Type")
+	if strings.Contains(contentType, "application/json") {
+		bytes, _ := ioutil.ReadAll(hctx.Req().Body)
+		return jsoniter.Unmarshal(bytes, bean)
+	} else {
+		hctx.req.ParseForm()
+		return bind(bean, hctx.req.Form)
+	}
+
 }
 func copyValues(dst, src url.Values) {
 	for k, vs := range src {
