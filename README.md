@@ -9,14 +9,13 @@ go get -u github.com/huyoufu/go-self
 package main
 
 import (
-	"github.com/huyoufu/go-self/router"
-	"github.com/huyoufu/go-self/server"
+	"github.com/huyoufu/go-self"
 )
 
 func main() {
-	app := server.NewServer()
+	app := self.NewServer()
 	app.Port(80)
-	router.Any("/", func(ctx router.Context) {
+	self.Any("/", func(ctx self.Context) {
 		ctx.WriteString("你好")
 	})
 	app.Start()
