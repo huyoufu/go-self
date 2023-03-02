@@ -1,4 +1,4 @@
-package router
+package rtree
 
 import (
 	"strings"
@@ -13,16 +13,16 @@ const (
 )
 
 type Node struct {
-	path            string           //当前节点路径
-	level           int              //节点等级
-	fullPath        string           //全路径
-	wildChild       bool             //是否是子节点
-	nType           nodeType         //节点类型
-	paramName       string           //如果为参数节点  存储该参数名字
-	children        []*Node          // 节点的子节点列表
-	indices         []string         //下级子节点索引
-	parent          *Node            //父节点
-	handlerPipeline *HandlerPipeline //处理器链 包含处理器和过滤器链
+	path            string      //当前节点路径
+	level           int         //节点等级
+	fullPath        string      //全路径
+	wildChild       bool        //是否是子节点
+	nType           nodeType    //节点类型
+	paramName       string      //如果为参数节点  存储该参数名字
+	children        []*Node     // 节点的子节点列表
+	indices         []string    //下级子节点索引
+	parent          *Node       //父节点
+	handlerPipeline interface{} //处理器链 包含处理器和过滤器链
 }
 
 func NewRoot() *Node {
@@ -44,7 +44,7 @@ func NewRoot() *Node {
 //1.static	  /user/add
 //2.root     /*
 //3.param    /user/:uid  /user/:uid/info
-func (root *Node) addNode(pattern string, handlerPipeline *HandlerPipeline) {
+func (root *Node) AddNode(pattern string, handlerPipeline interface{}) {
 	if "/*" == pattern {
 		panic("路径错误")
 	}
@@ -58,10 +58,10 @@ func (root *Node) addNode(pattern string, handlerPipeline *HandlerPipeline) {
 }
 
 // subPaths=[users :id xxx]  /user/:id/xxx
-func (root *Node) add(subPaths []string, handlerPipeline *HandlerPipeline) {
+func (root *Node) add(subPaths []string, handlerPipeline interface{}) {
 	//如果是根节点 肯定白搭
-	var paths_len = len(subPaths)
-	if root.level < paths_len {
+	var pathsLen = len(subPaths)
+	if root.level < pathsLen {
 		//如果比当前path的长度小 说明是该节点的上级节点
 		//判断路径长度 跟当前节点等级
 		//如果路径为3
@@ -70,7 +70,7 @@ func (root *Node) add(subPaths []string, handlerPipeline *HandlerPipeline) {
 		//二级节点 2 /user/:id
 		//三级节点 3 /user/:id/xx
 
-		if paths_len-root.level > 1 {
+		if pathsLen-root.level > 1 {
 			var zf *Node
 			//新增节点的祖父节点
 			if len(root.children) > 0 {
@@ -128,8 +128,8 @@ func checkPath(parent *Node, path string) {
 }
 
 //新增节点
-func newChild(parent *Node, subPaths []string, directParent bool, handlerPipeline *HandlerPipeline) *Node {
-	var h *HandlerPipeline
+func newChild(parent *Node, subPaths []string, directParent bool, handlerPipeline interface{}) *Node {
+	var h interface{}
 	//是否是直接父节点
 	if directParent {
 		h = handlerPipeline
@@ -165,7 +165,7 @@ func newChild(parent *Node, subPaths []string, directParent bool, handlerPipelin
 	return child
 }
 
-func (root *Node) Search(pattern string) (*Node, *HandlerPipeline, PathParam) {
+func (root *Node) Search(pattern string) (*Node, interface{}, map[string]string) {
 	if "/" == pattern {
 		return root, root.handlerPipeline, nil
 	}
@@ -173,7 +173,7 @@ func (root *Node) Search(pattern string) (*Node, *HandlerPipeline, PathParam) {
 
 	return root.search0(subPaths)
 }
-func (root *Node) search0(subPaths []string) (rn *Node, h *HandlerPipeline, pathParam PathParam) {
+func (root *Node) search0(subPaths []string) (rn *Node, h interface{}, pathParam map[string]string) {
 	pathParam = map[string]string{}
 walk:
 	for {
@@ -230,18 +230,4 @@ func checkIndices(indices []string, path string) bool {
 		}
 	}
 	return false
-}
-
-func prefix(s string, prefix string) string {
-	if !strings.HasPrefix(s, prefix) {
-		return prefix + s
-	}
-	return s
-}
-
-func suffix(s string, suffix string) string {
-	if !strings.HasSuffix(s, suffix) {
-		return s + suffix
-	}
-	return s
 }

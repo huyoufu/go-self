@@ -1,8 +1,9 @@
-package router
+package self
 
 import (
 	"context"
 	_ "github.com/huyoufu/go-self/json"
+	"github.com/huyoufu/go-self/resolver"
 	"github.com/huyoufu/go-self/session"
 	"github.com/json-iterator/go"
 	"io/ioutil"
@@ -133,7 +134,7 @@ func (hctx *HttpContext) Bind(bean interface{}) error {
 		return jsoniter.Unmarshal(bytes, bean)
 	} else {
 		hctx.req.ParseForm()
-		return bind(bean, hctx.req.Form)
+		return resolver.Bind(bean, hctx.req.Form)
 	}
 
 }

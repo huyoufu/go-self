@@ -1,4 +1,4 @@
-package router
+package self
 
 type Valve interface {
 	process(ctx Context)

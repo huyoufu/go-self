@@ -1,4 +1,4 @@
-package router
+package self
 
 type Handler interface {
 	Service(ctx Context)

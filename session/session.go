@@ -2,7 +2,7 @@ package session
 
 import "time"
 
-var CookieName = "jksessionid"
+var CookieName = "jk-sessionId"
 
 type Session interface {
 	Id() string

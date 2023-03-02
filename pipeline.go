@@ -1,4 +1,4 @@
-package router
+package self
 
 type HandlerPipeline struct {
 	Handler

@@ -1,8 +1,7 @@
-package server
+package self
 
 import (
 	. "github.com/huyoufu/go-self/logger"
-	"github.com/huyoufu/go-self/router"
 	"github.com/huyoufu/go-self/session"
 	"net/http"
 	"strconv"
@@ -15,13 +14,15 @@ type Server struct {
 	cors           bool
 	sessionManager *session.Manager
 	session        bool
-	pl             *router.Pipeline
+	pl             *Pipeline
 }
 
 func DefaultServer() *Server {
 	server := NewServer()
+	server.EnableSession()
+	server.EnableCors()
 	//添加日志拦截
-	server.AppendValveF(func(ctx router.Context) {
+	server.AppendValveF(func(ctx Context) {
 
 		start := time.Now().UnixNano()
 
@@ -29,7 +30,7 @@ func DefaultServer() *Server {
 		end := time.Now().UnixNano()
 		i := end - start
 		Log.Infof("Request cost:%d", i/1000/1000)
-	}, func(ctx router.Context) {
+	}, func(ctx Context) {
 		//logger.Log.Infof("\x1b[0;31m" + ctx.ClientIP() + " | " + ctx.Req().RequestURI + "\x1b[0m")
 		Log.Info(ctx.ClientIP() + " | " + ctx.Req().RequestURI)
 		ctx.Next()
@@ -37,13 +38,12 @@ func DefaultServer() *Server {
 	return server
 }
 
-func (s *Server) AppendValve(valves ...router.Valve) {
-
+func (s *Server) AppendValve(valves ...Valve) {
 	for _, v := range valves {
 		s.pl.Last(v)
 	}
 }
-func (s *Server) AppendValveF(vfs ...router.ValveFunc) {
+func (s *Server) AppendValveF(vfs ...ValveFunc) {
 	for _, v := range vfs {
 		s.pl = s.pl.LastPF(v)
 	}
@@ -53,7 +53,7 @@ func NewServer() *Server {
 		port:       8847,
 		serverName: "self",
 		cors:       false,
-		pl:         router.NewPipeline(),
+		pl:         NewPipeline(),
 	}
 }
 
@@ -91,11 +91,17 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		//允许cookie跨域
 		resp.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
-	vr := router.Dispatcher[req.Method]
-	_, hp, params := vr.Tree.Search(req.URL.Path)
-	//fmt.Println("hahha")
-	if hp == nil {
-		_, hp, params = router.Dispatcher["ANY"].Tree.Search(req.URL.Path)
+	var hp *HandlerPipeline
+	vr := Dispatcher[req.Method]
+	_, _hp, params := vr.Tree.Search(req.URL.Path)
+
+	if _hp == nil {
+		_, _hp, params = Dispatcher["ANY"].Tree.Search(req.URL.Path)
+		if _hp != nil {
+			hp = _hp.(*HandlerPipeline)
+		}
+	} else {
+		hp = _hp.(*HandlerPipeline)
 	}
 	if hp == nil {
 		http.NotFoundHandler().ServeHTTP(resp, req)
@@ -103,11 +109,11 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	//获取sever的pipeline
-	pl := router.Compose(s.pl, hp.GetPipeLine())
-	nhp := router.NewRouterHandlerPipeline(pl)
+	pl := Compose(s.pl, hp.GetPipeLine())
+	nhp := NewRouterHandlerPipeline(pl)
 	nhp.Handler = hp.Handler
 
-	httpContext := router.NewHttpContext(req, resp, params, nhp)
+	httpContext := NewHttpContext(req, resp, params, nhp)
 	if s.session {
 		//支持session
 		httpContext.Session = initSession(s.sessionManager, req, resp)

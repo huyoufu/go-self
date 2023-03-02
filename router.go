@@ -1,18 +1,19 @@
-package router
+package self
 
 import (
+	"github.com/huyoufu/go-self/rtree"
 	"strings"
 )
 
 type Routers map[string]router
 
 var Dispatcher = Routers{
-	"GET":     router{"get请求", NewRoot()},
-	"POST":    router{"post请求", NewRoot()},
-	"PUT":     router{"put请求", NewRoot()},
-	"DELETE":  router{"delete请求", NewRoot()},
-	"ANY":     router{"any请求", NewRoot()},
-	"OPTIONS": router{"options请求", NewRoot()},
+	"GET":     router{"get请求", rtree.NewRoot()},
+	"POST":    router{"post请求", rtree.NewRoot()},
+	"PUT":     router{"put请求", rtree.NewRoot()},
+	"DELETE":  router{"delete请求", rtree.NewRoot()},
+	"ANY":     router{"any请求", rtree.NewRoot()},
+	"OPTIONS": router{"options请求", rtree.NewRoot()},
 }
 
 type Group struct {
@@ -21,7 +22,7 @@ type Group struct {
 }
 type router struct {
 	name string
-	Tree *Node
+	Tree *rtree.Node
 }
 
 func NewGroup(name, groupPath string) *Group {
@@ -83,7 +84,7 @@ func AddRouterHandFuncWithPipeline(method, pattern string, h HandlerFunc, pl *Pi
 	r := Dispatcher[method]
 
 	handlerPipeline := HandlerPipeline{h, pl}
-	r.Tree.addNode(p, &handlerPipeline)
+	r.Tree.AddNode(p, &handlerPipeline)
 }
 func AddRouterHandFunc(method, pattern string, h HandlerFunc) {
 	AddRouterHandFuncWithPipeline(method, pattern, h, NewPipeline())
@@ -118,4 +119,18 @@ func Cleanup(pattern string) string {
 	//clean right "/"  if before "/" we must set pattern="/"
 	pattern = prefix(pattern, "/")
 	return pattern
+}
+
+func prefix(s string, prefix string) string {
+	if !strings.HasPrefix(s, prefix) {
+		return prefix + s
+	}
+	return s
+}
+
+func suffix(s string, suffix string) string {
+	if !strings.HasSuffix(s, suffix) {
+		return s + suffix
+	}
+	return s
 }
